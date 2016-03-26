@@ -1,0 +1,183 @@
+#include "tabulate.h"
+
+int main(int argc, char **argv)
+{
+   // Initialize the MPI environment
+   MPI_Init(NULL, NULL);
+   // Find out rank, size
+   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+   MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+   #ifdef DEBUG
+      printf("MPI Rank = %d, MPI Size = %d\n",myid,np);
+   #endif    
+
+   //if we are the master
+   if (myid == 0) { master_main(argc, argv); }
+  
+   //if we are the slave 
+   if (myid != 0) { slave_main(argc, argv); }
+
+   MPI_Finalize();
+   return 0;
+}
+
+int master_main(int argc, char **argv)
+{
+//holds name of inputfile
+char inputFileName[80];
+char outputFileName[80];
+char tagname[80];
+
+//get input file name
+   if (argc != 2)
+   {
+      printf("Error: wrong input arguments passed to command line.\n");
+      printf("Arguments should be: \n");
+      printf("tag\n");
+      printf("Example:\n");
+      printf("./tabulate.exe 01_01\n");
+      exit(2);
+   } else {
+      strcpy(inputFileName,argv[1]);
+   }
+
+   //read in parameters
+   OpenFile(input, inputFileName, ".input", "r");
+   int ierr = ReadParameters (input);
+   if (ierr == 1)
+      printf("Error in ReadParameters\n");
+
+   strcat(tag,"output/");
+   strcat(tag,inputFileName); 
+
+   char filename[256];
+   
+   strcpy(filename,"_double_bfkl.dat");
+      
+   OpenFile(output, tag, filename, "w");
+
+   #ifdef DEBUG 
+      printf("Writing double inclusive spectra to file: %s\n", fn_filename);
+   #endif
+
+   int i;
+   double *phi;
+   phi = (double *)malloc( (np-1)/5*sizeof(double));
+  
+   for (i = 0; i < (np-1)/5; i++){
+      phi[i] = (double)i/(double)(np-2)*3.14159;
+   }
+
+   if (np == 2)
+      phi[0] = 0.;
+
+   double slres;
+   double yp, yq, rtpT, rtqT;
+   double vals[5]; 
+   double rtqTd;
+
+   for(yp = -6.0; yp <= 6.0; yp += 0.5)
+   for(yq = -6.0; yq <= 6.0; yq += 0.5)
+   for(rtpT = .1; rtpT <= 5.1; rtpT += .2)
+   for(rtqT = .1; rtqT <= 5.1; rtqT += 1.0)
+   {  
+      for(rtqTd = rtqT; rtqTd <= rtqT+1.0; rtqTd += .2)
+      {
+         //this loop sends out phi values to all the processors
+         for(i=1; i <= (np-1)/5; i++) {
+            vals[0] = pow(rtpT,2.); vals[1] = pow(rtqT,2.);
+            vals[2] = phi[i-1];
+            vals[3] = yp; vals[4] = yq;
+            #ifdef DEBUG 
+               printf("Sending values to rank %d\n",i);
+            #endif
+
+    	      MPI_Send(vals, 5, MPI_DOUBLE, i, PIPE_MSG, MPI_COMM_WORLD);
+
+            #ifdef DEBUG 
+               printf("Sent values to rank %d\n",i);
+            #endif
+         }
+      }
+
+
+      for(rtqTd = rtqT; rtqTd <= rtqT+1.0; rtqTd += .2)
+      {
+         for(i=1; i <= (np-1)/5; i++) {
+    	      MPI_Recv(&slres, 1, MPI_DOUBLE, i, RET_MSG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    	      #ifdef DEBUG 
+            printf("Master received d2N=%10.8e from process number %d\n", slres,i); 
+            #endif
+            fprintf(output,"%10.1f\t%10.1f\t%10.2f\t%10.2f\t%10.4f\t%10.5e\n",\
+            yp, yq, rtpT, rtqTd, phi[i-1], slres);
+         }
+         //finished computation of all phi values
+      fflush(output);
+      }
+   }
+
+   //Tell processors we are done
+   for(i=1; i <= np-1; i++) {
+      MPI_Send(vals, 5, MPI_DOUBLE, i, END_MSG, MPI_COMM_WORLD);
+   }
+
+
+return 0;
+}
+
+int slave_main(int argc, char **argv)
+{
+
+//holds name of inputfile
+char inputFileName[80];
+
+strcpy(inputFileName,argv[1]);
+
+//read in parameters
+OpenFile(input, inputFileName, ".input", "r");
+int ierr = ReadParameters (input);
+if (ierr == 1)
+   printf("Error in ReadParameters\n");
+
+gsl_set_error_handler_off ();
+//read in UGD from file
+char fname1[256];
+char fname2[256];
+char fname3[256];
+
+if (wfTAG == 0){
+   sprintf(fname1,"wf/ft_g1119_qs02_0168_af1_399_N%d.dat",A1);
+   sprintf(fname2,"wf/ft_g1119_qs02_0168_af1_399_N%d.dat",A2);
+   sprintf(fname3,"wf/LargeX.dat");
+}
+if (wfTAG == 1){
+   sprintf(fname1,"wf/ft_mv_qs02_02_af1_N%d.dat",A1);
+   sprintf(fname2,"wf/ft_mv_qs02_02_af1_N%d.dat",A2);
+   sprintf(fname3,"wf/LargeX.dat");
+}
+ReadInWF(fname1,fname2,fname3);
+      
+ReadInBFKL();
+     
+double myres;
+double vals[5]; 
+
+   for(;;){
+      MPI_Recv(vals, 5, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &Status);
+      if (Status.MPI_TAG == END_MSG)  break;
+      #ifdef DEBUG
+      printf("Process %d received vals=(%lf,%lf,%lf,%lf,%lf) from master\n",\
+      myid, vals[0], vals[1], vals[2], vals[3], vals[4] ); 
+      #endif
+   
+      myres = d2N_BFKL( vals[0], vals[1], vals[2], vals[3], vals[4], rts);
+
+      #ifdef DEBUG 
+      printf("Process %d computed val=%10.8e and sending to master\n",myid, myres); 
+      #endif
+      MPI_Send(&myres, 1, MPI_DOUBLE, 0, RET_MSG, MPI_COMM_WORLD);
+   }
+
+return 0;
+}

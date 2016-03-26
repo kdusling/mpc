@@ -1,0 +1,12 @@
+#ifndef jetms_H_INCLUDED
+#define jetms_H_INCLUDED
+
+#include "wf.h"
+#include "cubature.h"
+
+
+double d2N_MRK(double pT, double qT, double phiq, double yp, double yq, double rts);
+
+double d2N_QMRK(double pT, double qT, double phiq, double yp, double yq, double rts);
+
+#endif
