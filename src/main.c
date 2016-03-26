@@ -55,21 +55,16 @@ PrintWF(.1, tag);
 PrintWF(.01, tag);
 PrintWF(.0001, tag);
 
-//OpenFile(outsingle, tag, "_single.dat", "w");
-//printf("Writing single inclusive spectra to file: %s\n", fn_filename);
-//TabulateSingle(outsingle,rts);
+OpenFile(outsingle, tag, "_single.dat", "w");
+printf("Writing single inclusive spectra to file: %s\n", fn_filename);
+TabulateSingle(outsingle,rts);
 
-//   double ptT;
-//   for (ptT = .1; ptT <= 20.001; ptT += .1){
-//   fprintf(stdout,"\t%10.5e\n", dNdpTdy(ptT,0.,rts) );
-//   }
 
 
 return 0;
 
 ReadInBFKL();  
 //SpecialFuncTests(1);
-//print_alpha();
 setup_double();
 
 char fname[256];
