@@ -3,21 +3,30 @@
 
 #define Cf ((Nc*Nc-1.)/(2.*Nc))
 
-struct spec_params {
-	int type;
-   int swap;
+struct double_params {
 	double pT;
-	double qT;
+    double qT;
+    double yp;
+    double yq;
 	double phi;
-	double phiq;
-	double x1, x2;
-	double z1, z2;
+    double phipq;
+    double rts;
+    gsl_function Kernel; 
 	};
 
 void setup_double();
 
-double d2N_Glasma(double pT, double qT, double phiq, double yp, double yq, double rts);
-double d2N_Glasma_DeltaFn(double pT, double qT, double phiq, double yp, double yq, double rts);
-double In(double pT, double yp, double yq, double rts, int n);
+double dNd2pTdy(double pT, double yp, double rts);
+double d2N(double pT, double qT, double phiq, double yp, double yq, double rts);
+double d2Ndd(double pT, double yp, double yq, double rts);
+
+//does phi integration over d^2k_\perp
+double phikernel(double x, void *p);
+
+//integrand functions
+double single(double x, void *p);
+double doubleKernel(double x, void *p);
+double cosKernel(double x, void *p);
+double sinKernel(double x, void *p);
 
 #endif

@@ -2,6 +2,7 @@
 
 double wf(int nucleus, double x, double k)
 {
+
    if ( x <= 0.0 || x >= 1.0 || k < kT_min )
       return 0.0;
 
@@ -24,7 +25,7 @@ double wf(int nucleus, double x, double k)
    double myY = gsl_max(0.0,log(x0/x));
    double dY = Y[1]-Y[0];  // width of rapidity bin
    int iY = (int) (myY/dY);    // rapidity bin
-
+   
    if (iY+1 < NY) {
 	   double tmp,tmp1,tmp2;
       if (nucleus == 1){
@@ -39,10 +40,11 @@ double wf(int nucleus, double x, double k)
          return 0.;
       }
 	   tmp = tmp1 + (myY-dY*iY)/dY * (tmp2-tmp1);  // lin interpolation in Y
-      /* large-x correction */
+       /* large-x correction */
 	   return norm*tmp*(x > x0 ? gsl_spline_eval(LargeX, x, accLargeX) : 1.0);
+	   //return norm*tmp*(x > x0 ? pow( (1. - x)/(1. - x0), 4.)  : 1.0);
    } else {
-	   //printf("x too small in Phi(x)!\n");
+	   printf("x too small in Phi(x)!\n");
 	   return 0.;
    }
 

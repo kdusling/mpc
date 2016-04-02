@@ -8,306 +8,268 @@
 #include <gsl/gsl_errno.h>
 
 //workspace and global variables for integration
-static double abserr = 1.e-20;
-static double relerr = 1.e-4;
+static double abserr = 1.e-200;
+static double relerr = 1.e-6;
 static size_t wktsize = 20;
 static gsl_integration_workspace * wkt;
-static struct spec_params myparams;
 
-double ktphidouble(double x, void *params);
-double phidouble(double x, void *params);
-
-double Glasma_Kernel(double x, void *params) ;
-double GlasmaI1_Kernel(double x, void *params) ;
-double GlasmaI2_Kernel(double x, void *params) ;
-double GlasmaI3_Kernel(double x, void *params) ;
+double phiKernel(double x, void *params);
 
 static double result,error;
 static size_t neval;
-static gsl_function F;
-static struct spec_params params;
+static gsl_function phiIntKernel;
 
 void setup_double()
 {
 wkt = gsl_integration_workspace_alloc (wktsize);
 gsl_set_error_handler_off ();
+phiIntKernel.function = &phiKernel; 
 }
 
-double d2N_Glasma(double pT, double qT, double phiq, double yp, double yq, double rts)
+double dNd2pTdy(double pT, double yp, double rts)
 {
-params.type = 2;
-params.pT = pT; params.qT = qT; params.phiq = phiq;
-	
-params.swap = 0;
-if (yp >= yq){
-   yp *= -1.;
-   yq *= -1.;
-   params.swap = 1;
+static struct double_params params;
+params.pT = pT;
+params.yp = yp;
+params.rts = rts;
+(params.Kernel).function = &single;
+
+phiIntKernel.params = &params;
+gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &result, &error, &neval);
+   
+double norm = 8.0/Cf/pow(2.*M_PI,6.)/pow(pT,2.0)*alpha(pT)/4.;
+
+return norm*result;
 }
 
-params.x1 = pT/rts*exp(-yp);
-params.x2 = pT/rts*exp(+yp);
-params.z1 = qT/rts*exp(-yq);
-params.z2 = qT/rts*exp(+yq);
-//do phi integration
-F.params = &params;
-F.function = &phidouble;
-gsl_integration_qng(&F, 0., 2.*M_PI,abserr,relerr,&result,&error,&neval);
-
-return result;
-}
-
-double In(double pT, double yp, double yq, double rts, int n)
+double d2N(double pT, double qT, double phipq, double yp, double yq, double rts)
 {
-params.pT = pT; params.qT = pT; params.phiq = 0;
-double fac = sqrt( (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*pT)*alpha(pT)*alpha(pT) );
+    static struct double_params params;
+    params.pT = pT;
+    params.qT = qT;
+    params.yp = yp;
+    params.yq = yq;
+    params.rts = rts;
+    params.phipq = phipq;
+    (params.Kernel).function = &doubleKernel;
 
-params.swap = 0;
+    phiIntKernel.params = &params;
+    gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &result,
+            &error, &neval);
 
-if (yp >= yq){
-	yp *= -1.;
-	yq *= -1.;
-   params.swap = 1;
+    double norm = (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*
+        qT)*alpha(pT)*alpha(qT);
+
+    return norm*result;
 }
 
-params.x1 = pT/rts*exp(-yp);
-params.x2 = pT/rts*exp(+yp);
-params.z1 = pT/rts*exp(-yq);
-params.z2 = pT/rts*exp(+yq);
-       
-F.function = &phidouble;
-F.params = &params;
-
-double I;
-
-if (n == 1)
-   params.type = 11;
-
-if (n == 2)
-   params.type = 12;
-
-if (n == 3)
-   params.type = 13;
-
-gsl_integration_qng(&F, 0., 2.*M_PI,abserr,relerr,&I,&error,&neval);
-     
-return I/fac;
-} 
-
-double d2N_Glasma_DeltaFn(double pT, double qT, double phiq, double yp, double yq, double rts)
+double d2Ndd(double pT, double yp, double yq, double rts)
 {
-pT = (pT+qT)/2.;
-qT = pT;
-params.pT = pT; params.qT = qT; params.phiq = phiq;
+    double sinres, cosres;
+    static struct double_params params;
+    params.pT = pT;
+    params.yp = yp;
+    params.yq = yq;
+    params.rts = rts;
 
-params.swap = 0;
+    (params.Kernel).function = &cosKernel;
+    phiIntKernel.params = &params;
+    gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &cosres, &error, &neval);
+    
+    (params.Kernel).function = &sinKernel;
+    phiIntKernel.params = &params;
+    gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &sinres, &error, &neval);
 
-if (yp >= yq){
-	yp *= -1.;
-	yq *= -1.;
-   params.swap = 1;
+    double norm =  (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*pT)*alpha(pT)*alpha(pT) ;
+
+    return norm*(cosres*cosres + sinres*sinres);
 }
 
-params.x1 = pT/rts*exp(-yp);
-params.x2 = pT/rts*exp(+yp);
-params.z1 = qT/rts*exp(-yq);
-params.z2 = qT/rts*exp(+yq);
-       
-F.function = &phidouble;
-F.params = &params;
 
-double I1, I2, I3;
+double single(double x, void *p)
+{
+   struct double_params params = *(struct double_params *)p;
+  
+   double rts = params.rts;
+   double pT, yp, x1p, x2p;
 
-params.type = 11;
-gsl_integration_qng(&F, 0., 2.*M_PI,abserr,relerr,&I1,&error,&neval);
-params.type = 12;
-gsl_integration_qng(&F, 0., 2.*M_PI,abserr,relerr,&I2,&error,&neval);
-params.type = 13;
-gsl_integration_qng(&F, 0., 2.*M_PI,abserr,relerr,&I3,&error,&neval);
-      
-return (I1*I1 + I2*I2 + 2.*I3*I3) ;
+   double phi = params.phi;
+   double kT =  x;
+   
+   pT = params.pT;
+   yp = params.yp;
+
+   x1p = pT/rts*exp(+yp);
+   x2p = pT/rts*exp(-yp);
+   
+   double pTpkT = 0.5*sqrt( pT*pT + kT*kT + 2.0*pT*kT*cos(phi) );
+   double pTmkT = 0.5*sqrt( pT*pT + kT*kT - 2.0*pT*kT*cos(phi) );
+
+   return kT*wf(1,x1p,pTmkT)*wf(2,x2p,pTpkT);
+}
+
+double doubleKernel(double x, void *p)
+{
+   struct double_params params = *(struct double_params *)p;
+  
+   double rts = params.rts;
+   double pT, qT, yp, yq;
+   double x1p, x2p, x1q, x2q, x1max, x2max;
+
+   double phi = params.phi;
+   double phipq = params.phipq;
+   double kT =  x;
+   
+   pT = params.pT;
+   qT = params.qT;
+   yp = params.yp;
+   yq = params.yq;
+
+   x1p = pT/rts*exp(+yp);
+   x2p = pT/rts*exp(-yp);
+   x1q = qT/rts*exp(+yq);
+   x2q = qT/rts*exp(-yq);
+
+   x1max = gsl_max(x1p,x1q);
+   x2max = gsl_max(x2p,x2q);
+   
+   double qTmkT = sqrt( qT*qT + kT*kT - 2.0*qT*kT*cos(phipq-phi) );
+   double qTpkT = sqrt( qT*qT + kT*kT + 2.0*qT*kT*cos(phipq-phi) );
+   double pTmkT = sqrt( pT*pT + kT*kT - 2.0*pT*kT*cos(phi) );
+   double pTpkT = sqrt( pT*pT + kT*kT + 2.0*pT*kT*cos(phi) );
+   
+   double pTmkTmqT = sqrt( pT*pT + kT*kT + qT*qT \
+                          -2.0*pT*qT*cos(phipq) \
+                          -2.0*pT*kT*cos(phi) \
+                          +2.0*qT*kT*cos(phipq-phi)\
+                        );
+
+   double pTmkTpqT = sqrt( pT*pT + kT*kT + qT*qT \
+                          +2.0*pT*qT*cos(phipq) \
+                          -2.0*pT*kT*cos(phi) \
+                          -2.0*qT*kT*cos(phipq-phi)\
+                        );
+
+   //diagram A & E
+   //this factor of 0.5 is from
+   //symmetrizing wrt pTmkT
+   double AE = 0.5*kT*pow(wf(1,x1max,kT),2.0)\
+          *( wf(2,x2p,pTmkT) + wf(2,x2p,pTpkT) )\
+          *( wf(2,x2q,qTmkT) + wf(2,x2q,qTpkT) );
+
+   //diagram B & F
+   double BF = 0.5*kT*pow(wf(2,x2max,kT),2.0)\
+          *( wf(1,x1p,pTmkT) + wf(1,x1p,pTpkT) )\
+          *( wf(1,x1q,qTmkT) + wf(1,x1q,qTpkT) );
+  
+   return AE + BF; 
+   
+   double T1D, T2D, T1H, T2H, denD, denH;
+   T1D = ( kT*pT*cos(phi)-kT*kT )\
+        *( pT*pT - pT*qT*cos(phipq) - pT*kT*cos(phi) - pow(pTmkTmqT,2.0) ) \
+        - (pT*kT*sin(phi))*(pT*qT*sin(phipq) + pT*kT*sin(phi) );        
+   
+   T1H = ( kT*pT*cos(phi)-kT*kT )\
+        *( pT*pT + pT*qT*cos(phipq) - pT*kT*cos(phi) - pow(pTmkTpqT,2.0) ) \
+        - (pT*kT*sin(phi))*(-pT*qT*sin(phipq) + pT*kT*sin(phi) );        
+   
+   T2D = ( kT*qT*cos(phipq-phi)+kT*kT )\
+        *( -qT*qT + pT*qT*cos(phipq) - qT*kT*cos(phipq-phi) + pow(pTmkTmqT,2.0) ) \
+        + (qT*kT*sin(phipq-phi))*(pT*qT*sin(phipq) - qT*kT*sin(phipq-phi) );        
+   
+   T2H = ( -kT*qT*cos(phipq-phi)+kT*kT )\
+        *( -qT*qT - pT*qT*cos(phipq) + qT*kT*cos(phipq-phi) + pow(pTmkTpqT,2.0) ) \
+        + (qT*kT*sin(phipq-phi))*(pT*qT*sin(phipq) - qT*kT*sin(phipq-phi) );        
+   
+   denD = pow(kT*pTmkTmqT*pTmkT*qTpkT,2.0);
+   
+   denH = pow(kT*pTmkTpqT*pTmkT*qTmkT,2.0);
+   
+   //this factor of 0.5 is from the different f^4\delta^4 structure
+   double D = 0.5*kT*T1D*T2D/denD\
+               *wf(1,x1max,kT)*wf(1,x1max,pTmkTmqT)*wf(2,x2max,pTmkT)*wf(2,x2max,qTpkT);
+   
+   double H = 0.5*kT*T1H*T2H/denH\
+               *wf(1,x1max,kT)*wf(1,x1max,pTmkTpqT)*wf(2,x2max,pTmkT)*wf(2,x2max,qTmkT);
+   
+   return AE + BF + D + H;
+}
+
+
+double cosKernel(double x, void *p)
+{
+   struct double_params params = *(struct double_params *)p;
+  
+   double rts = params.rts;
+   double pT, yp, yq;
+   double x1p, x2p, x1q, x2q, x1max, x2max;
+
+   double phi = params.phi;
+   double kT =  x;
+   
+   pT = params.pT;
+   yp = params.yp;
+   yq = params.yq;
+
+   x1p = pT/rts*exp(+yp);
+   x2p = pT/rts*exp(-yp);
+   x1q = pT/rts*exp(+yq);
+   x2q = pT/rts*exp(-yq);
+
+   x1max = gsl_max(x1p,x1q);
+   x2max = gsl_max(x2p,x2q);
+   
+   double pTmkT = sqrt( pT*pT + kT*kT - 2.0*pT*kT*cos(phi) );
+
+   double num = pow( kT*pT*cos(phi)-kT*kT, 2.0); 	 
+   double den  = pow(kT*pTmkT,2.);  
+
+   return kT*wf(1,x1p,kT)*wf(2,x2p,pTmkT)*num/den;
+}
+
+double sinKernel(double x, void *p)
+{
+   struct double_params params = *(struct double_params *)p;
+  
+   double rts = params.rts;
+   double pT, yp, yq;
+   double x1p, x2p, x1q, x2q, x1max, x2max;
+
+   double phi = params.phi;
+   double kT =  x;
+   
+   pT = params.pT;
+   yp = params.yp;
+   yq = params.yq;
+
+   x1p = pT/rts*exp(+yp);
+   x2p = pT/rts*exp(-yp);
+   x1q = pT/rts*exp(+yq);
+   x2q = pT/rts*exp(-yq);
+
+   x1max = gsl_max(x1p,x1q);
+   x2max = gsl_max(x2p,x2q);
+   
+   double pTmkT = sqrt( pT*pT + kT*kT - 2.0*pT*kT*cos(phi) );
+
+   double num = pow( kT*pT*sin(phi), 2.0); 	 
+   double den = pow( kT*pTmkT ,2.0);  
+
+   return kT*wf(1,x1max,kT)*wf(2,x2max,pTmkT)*num/den;
 }
 
 //does phi integration over d^2k_\perp
-double phidouble(double x, void *params)
+double phiKernel(double x, void *p)
 {
-   myparams = *(struct spec_params *)params;
-   myparams.phi = x;
+   struct double_params params = *(struct double_params *)p;
+   double result, error;
+   params.phi = x;
+   
+   gsl_function F = params.Kernel;
+   F.params = &params;
 
-   double result,error;
-   gsl_function F;
-   F.function = &ktphidouble;
-   F.params = &myparams;
-
-   gsl_integration_qagiu (&F , kT_min, abserr, relerr, wktsize, wkt, &result, &error);
-return result;
-}
-
-
-
-double ktphidouble(double x, void *params)
-{
-myparams = *(struct spec_params *)params;
-int type = myparams.type;
-
-
-switch (type){
-	case 11:
-      return GlasmaI1_Kernel(x, params);
-	break;
-	case 12:
-      return GlasmaI2_Kernel(x, params);
-	break;
-	case 13:
-      return GlasmaI3_Kernel(x, params);
-	break;
-	
-
-   case 2:
-      return Glasma_Kernel(x, params);
-	break;
-}
+   //now do kT integral
+   gsl_integration_qagiu (&F , 0., abserr, relerr, wktsize, wkt, &result, &error);
 
 return result;
-}
-
-double Glasma_Kernel(double x, void *params)
-{
-   myparams = *(struct spec_params *)params;
-
-   double kT = x;
-   double pT = myparams.pT;
-   double qT = myparams.qT;
-   double x1 = myparams.x1;
-   double x2 = myparams.x2;
-   double z1 = myparams.z1;
-   double z2 = myparams.z2;
-   double phi = myparams.phi;
-   double phiq = myparams.phiq;
-   double phi2 = phiq-phi;
-   double pTpkT = sqrt(pT*pT + kT*kT + 2.*pT*kT*cos(phi ));
-   double pTmkT = sqrt(pT*pT + kT*kT - 2.*pT*kT*cos(phi ));
-   double qTpkT = sqrt(qT*qT + kT*kT + 2.*qT*kT*cos(phi2));
-   double qTmkT = sqrt(qT*qT + kT*kT - 2.*qT*kT*cos(phi2));
-   double pTmqTmkT = sqrt( pT*pT + qT*qT + kT*kT - 2.*pT*qT*cos(phiq) + 2.*qT*kT*cos(phi2) - 2.*pT*kT*cos(phi) );
-   double pTpqTmkT = sqrt( pT*pT + qT*qT + kT*kT + 2.*pT*qT*cos(phiq) - 2.*qT*kT*cos(phi2) - 2.*pT*kT*cos(phi) );
-
-	double fac = (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*qT)*alpha(pT)*alpha(qT);
-	
-   double res1=0; double res2=0; double res5=0; double res7=0;
-   double num1, num2, den;
-	   
-   //res1+res2 is the F^{1,2,3,6}
-   if (myparams.swap == 0){
-	   //the factor of 1/2 comes from symmetrizing the pTmkT wf which is not necessary but does help out the numerics
-      res1 = 0.5*fac*kT*pow(wf(1,x1,kT),2.)*( wf(2,x2,pTmkT) + wf(2,x2,pTpkT) )*( wf(2,z2,qTpkT) + wf(2,z2,qTmkT) ) ; 
-	   res2 = 0.5*fac*kT*pow(wf(2,z2,kT),2.)*( wf(1,x1,pTmkT) + wf(1,x1,pTpkT) )*( wf(1,z1,qTpkT) + wf(1,z1,qTmkT) ) ;
-   }
-   if (myparams.swap == 1){
-	   res1 = 0.5*fac*kT*pow(wf(2,x1,kT),2.)*( wf(1,x2,pTmkT) + wf(1,x2,pTpkT) )*( wf(1,z2,qTpkT) + wf(1,z2,qTmkT) ) ; 
-	   res2 = 0.5*fac*kT*pow(wf(1,z2,kT),2.)*( wf(2,x1,pTmkT) + wf(2,x1,pTpkT) )*( wf(2,z1,qTpkT) + wf(2,z1,qTmkT) ) ;
-   }
-   //this is F^{5}
-   den =  pow(kT*pTmqTmkT*pTmkT*qTpkT,2.0);
-   num1 = ( kT*pT*cos(phi ) - kT*kT )*(  pT*pT - pT*qT*cos(phiq) - pT*kT*cos(phi ) - pow(pTmqTmkT,2.) ) + ( kT*pT*sin(phi ) )*( -pT*qT*sin(phiq) - pT*kT*sin(phi ) );
-   num2 = ( kT*qT*cos(phi2) + kT*kT )*( -qT*qT + pT*qT*cos(phiq) - qT*kT*cos(phi2) + pow(pTmqTmkT,2.) ) + ( kT*qT*sin(phi2) )*(  pT*qT*sin(phiq) - qT*kT*sin(phi2) );
-   
-   //this factor of 0.5 is from the different f^4\delta^4 structure
-   if (myparams.swap == 0){
-      res5 = 0.5*fac*kT*wf(1,x1,kT)*wf(1,x1,pTmqTmkT)*wf(2,z2,pTmkT)*wf(2,z2,qTpkT)*( num1*num2/den );
-   }   
-   if (myparams.swap == 1){
-      res5 = 0.5*fac*kT*wf(2,x1,kT)*wf(2,x1,pTmqTmkT)*wf(1,z2,pTmkT)*wf(1,z2,qTpkT)*( num1*num2/den );
-   }
-   
-   //this is F^{7}
-   den =  pow(kT*pTpqTmkT*pTmkT*qTmkT,2.0);
-   num1 = ( kT*pT*cos(phi ) - kT*kT )*(  pT*pT + pT*qT*cos(phiq) - pT*kT*cos(phi ) - pow(pTpqTmkT,2.) ) + (  kT*pT*sin(phi ) )*(  pT*qT*sin(phiq) - pT*kT*sin(phi ) );
-   num2 = ( kT*qT*cos(phi2) - kT*kT )*(  qT*qT + pT*qT*cos(phiq) - qT*kT*cos(phi2) - pow(pTpqTmkT,2.) ) + ( -kT*qT*sin(phi2) )*( -pT*qT*sin(phiq) + qT*kT*sin(phi2) );
-   if (myparams.swap == 0){
-      res7 = 0.5*fac*kT*wf(1,x1,kT)*wf(1,x1,pTpqTmkT)*wf(2,z2,pTmkT)*wf(2,z2,qTmkT)*( num1*num2/den );
-   }   
-   if (myparams.swap == 1){
-      res7 = 0.5*fac*kT*wf(2,x1,kT)*wf(2,x1,pTpqTmkT)*wf(1,z2,pTmkT)*wf(1,z2,qTmkT)*( num1*num2/den );
-   }   
-
-return res1 + res2 + res5 + res7;
-}	
-
-double GlasmaI1_Kernel(double x, void *params)
-{
-   myparams = *(struct spec_params *)params;
-
-   double kT = x;
-   double pT = myparams.pT;
-   double qT = myparams.qT;
-   double x1 = myparams.x1;
-   double z2 = myparams.z2;
-   double phi = myparams.phi;
-   double pTmkT = sqrt(pT*pT + kT*kT - 2.*pT*kT*cos(phi) );
-
-	double fac = sqrt( (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*qT)*alpha(pT)*alpha(qT) );
-   double num = pow( kT*pT*cos(phi)-kT*kT, 2.0); 	 
-   double den  = pow(kT*pTmkT,2.);  
-   
-         if (myparams.swap == 0){
-            return fac*kT*wf(1,x1,kT)*wf(2,z2,pTmkT)*num/den;
-         }
-         if (myparams.swap == 1){
-            return fac*kT*wf(2,x1,kT)*wf(1,z2,pTmkT)*num/den;
-         }
-
-return 0;
-}
-		
-double GlasmaI2_Kernel(double x, void *params)
-{
-   myparams = *(struct spec_params *)params;
-
-   double kT = x;
-   double pT = myparams.pT;
-   double qT = myparams.qT;
-   double x1 = myparams.x1;
-   double z2 = myparams.z2;
-   double phi = myparams.phi;
-   double pTmkT = sqrt(pT*pT + kT*kT - 2.*pT*kT*cos(phi) );
-   
-   double fac = sqrt( (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*qT)*alpha(pT)*alpha(qT) );
-   double num = pow( kT*pT*sin(phi), 2.0); 	 
-   double den = pow(kT*pTmkT,2.);  
-   
-         if (myparams.swap == 0){
-            return fac*kT*wf(1,x1,kT)*wf(2,z2,pTmkT)*num/den;
-         } 
-         if (myparams.swap == 1){
-            return fac*kT*wf(2,x1,kT)*wf(1,z2,pTmkT)*num/den;
-         }
-
-return 0;
-}
-		
-double GlasmaI3_Kernel(double x, void *params)
-{
-   myparams = *(struct spec_params *)params;
-
-   double kT = x;
-   double pT = myparams.pT;
-   double qT = myparams.qT;
-   double x1 = myparams.x1;
-   double z2 = myparams.z2;
-   double phi = myparams.phi;
-   double pTmkT = sqrt(pT*pT + kT*kT - 2.*pT*kT*cos(phi) );
-
-      double fac = sqrt( (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*qT)*alpha(pT)*alpha(qT) );
-      double num = ( kT*pT*cos(phi)-kT*kT )*( kT*pT*sin(phi) ); 	 
-      double den  = pow(kT*pTmkT,2.);  
-   
-         if (myparams.swap == 0){
-            return fac*kT*wf(1,x1,kT)*wf(2,z2,pTmkT)*num/den;
-         }
-         if (myparams.swap == 1){
-            return fac*kT*wf(2,x1,kT)*wf(1,z2,pTmkT)*num/den;
-         }
-
-return 0;
 }
