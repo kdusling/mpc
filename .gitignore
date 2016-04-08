@@ -1,2 +1,5 @@
-obj/
-bin/output/
+obj/*
+bin/*
+bin/output/*
+!bin/test.input
+!bin/output/README
