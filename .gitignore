@@ -1,5 +1,7 @@
 obj/*
 bin/*
-bin/output/*
 !bin/test.input
+!bin/output/
+bin/output/*
 !bin/output/README
+
