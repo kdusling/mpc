@@ -53,21 +53,18 @@ ReadInWF(fname1,fname2,fname3);
 setup_double();
 //ReadInBFKL();  
 
-//print_alpha(tag);
-//PrintWF(.01, tag);
+//PrintWF(.0003, tag);
 
 OpenFile(outsingle, tag, "_single.dat", "w");
 OpenFile(outdouble, tag, "_double.dat", "w");
-
-
 double y, x1, x2;
-double kT = 2.0;
+double kT = 1.;
 
 for (y = -10; y <= 10; y += 0.05)
 { 
     x1 = kT/rts*exp(+y);
     x2 = kT/rts*exp(-y);
-    fprintf(outsingle,"%10.2e\t%10.2e\t%10.2e\t%10.5e\n", y, x1, x2,  dNd2pTdy(kT,y,rts) );
+//    fprintf(outsingle,"%10.2e\t%10.2e\t%10.2e\t%10.5e\t%10.5e\t%10.5e\n", y, x1, x2, dNdy(kT,y,rts,0.), dNdy(kT,y,rts,1.), dNdy(kT,y,rts,5.) );
 }
 clock_t begin, end;
 double time_spent;
@@ -77,22 +74,25 @@ begin = clock();
 //warning -- only using AEBF
 double yp,yq,dy;
 double x1p, x2p, x1q, x2q;
-double pT=0.8;
-double qT=0.8;
-for (yp = -3; yp <= 3; yp += 3)
+double pT=1.0;
+double qT=1.0;
+for (yp = -2.2; yp <= 3; yp += 4.4)
 {
-    for (dy = -8; dy <= 8.01; dy += .2)
+    for (dy = -8; dy <= 8.01; dy += .5)
     { 
         yq = dy + yp;
         x1p = pT/rts*exp(+yp);
         x2p = pT/rts*exp(-yp);
         x1q = qT/rts*exp(+yq);
         x2q = qT/rts*exp(-yq);
-        fprintf(outdouble,"%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.5e\t%10.5e\n", yp, dy, x1p, x2p, x1q, x2q, \
-        d2N(pT,qT,0.,yp,yq,rts),dNd2pTdy(pT,yp,rts)*dNd2pTdy(qT,yq,rts) );
+        fprintf(outdouble,"%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.5e\t%10.5e\t%10.5e\n",\
+            yp, dy, x1p, x2p, x1q, x2q, \
+            d2N(pT,qT,0.,yp,yq,rts)/dNd2pTdy(pT,yp,rts),\
+            d2Ndd(pT,yp,yq,rts)/dNd2pTdy(pT,yp,rts),\
+            dNd2pTdy(qT,yq,rts) );
+        fflush(outdouble);
     }
 fprintf(outdouble,"\n");
-fflush(outdouble);
 }
 
 end = clock();

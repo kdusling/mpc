@@ -16,7 +16,6 @@ struct double_params {
 
 void setup_double();
 
-double dNd2pTdy(double pT, double yp, double rts);
 double d2N(double pT, double qT, double phiq, double yp, double yq, double rts);
 double d2Ndd(double pT, double yp, double yq, double rts);
 
@@ -24,7 +23,6 @@ double d2Ndd(double pT, double yp, double yq, double rts);
 double phikernel(double x, void *p);
 
 //integrand functions
-double single(double x, void *p);
 double doubleKernel(double x, void *p);
 double cosKernel(double x, void *p);
 double sinKernel(double x, void *p);

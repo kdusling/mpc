@@ -2,7 +2,6 @@
 
 double wf(int nucleus, double x, double k)
 {
-
    if ( x <= 0.0 || x >= 1.0 || k < kT_min )
       return 0.0;
 
@@ -44,7 +43,7 @@ double wf(int nucleus, double x, double k)
 	   return norm*tmp*(x > x0 ? gsl_spline_eval(LargeX, x, accLargeX) : 1.0);
 	   //return norm*tmp*(x > x0 ? pow( (1. - x)/(1. - x0), 4.)  : 1.0);
    } else {
-	   printf("x too small in Phi(x)!\n");
+	   //printf("x too small in Phi(x)!\n");
 	   return 0.;
    }
 

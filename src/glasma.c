@@ -26,22 +26,6 @@ gsl_set_error_handler_off ();
 phiIntKernel.function = &phiKernel; 
 }
 
-double dNd2pTdy(double pT, double yp, double rts)
-{
-static struct double_params params;
-params.pT = pT;
-params.yp = yp;
-params.rts = rts;
-(params.Kernel).function = &single;
-
-phiIntKernel.params = &params;
-gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &result, &error, &neval);
-   
-double norm = 8.0/Cf/pow(2.*M_PI,6.)/pow(pT,2.0)*alpha(pT)/4.;
-
-return norm*result;
-}
-
 double d2N(double pT, double qT, double phipq, double yp, double yq, double rts)
 {
     static struct double_params params;
@@ -85,28 +69,6 @@ double d2Ndd(double pT, double yp, double yq, double rts)
     return norm*(cosres*cosres + sinres*sinres);
 }
 
-
-double single(double x, void *p)
-{
-   struct double_params params = *(struct double_params *)p;
-  
-   double rts = params.rts;
-   double pT, yp, x1p, x2p;
-
-   double phi = params.phi;
-   double kT =  x;
-   
-   pT = params.pT;
-   yp = params.yp;
-
-   x1p = pT/rts*exp(+yp);
-   x2p = pT/rts*exp(-yp);
-   
-   double pTpkT = 0.5*sqrt( pT*pT + kT*kT + 2.0*pT*kT*cos(phi) );
-   double pTmkT = 0.5*sqrt( pT*pT + kT*kT - 2.0*pT*kT*cos(phi) );
-
-   return kT*wf(1,x1p,pTmkT)*wf(2,x2p,pTpkT);
-}
 
 double doubleKernel(double x, void *p)
 {
@@ -162,8 +124,6 @@ double doubleKernel(double x, void *p)
           *( wf(1,x1p,pTmkT) + wf(1,x1p,pTpkT) )\
           *( wf(1,x1q,qTmkT) + wf(1,x1q,qTpkT) );
   
-   return AE + BF; 
-   
    double T1D, T2D, T1H, T2H, denD, denH;
    T1D = ( kT*pT*cos(phi)-kT*kT )\
         *( pT*pT - pT*qT*cos(phipq) - pT*kT*cos(phi) - pow(pTmkTmqT,2.0) ) \

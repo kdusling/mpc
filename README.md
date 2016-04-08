@@ -1,8 +1,7 @@
 ## MPC: Multi-particle correlations
 
 Code to generate one- and two-gluon production within the CGC framework using
-rcBK wavefunctions.  Documentation can be found
-[http://kdusling.github.io/mpc/](http://kdusling.github.io/mpc/).
+rcBK wavefunctions.  
 
 ## Code Example
 
