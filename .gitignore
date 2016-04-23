@@ -1,5 +1,5 @@
-obj/*
 !obj/.gitignore
+obj/*
 bin/*
 !bin/test.input
 !bin/output/
