@@ -26,9 +26,9 @@ gsl_set_error_handler_off ();
 phiIntKernel.function = &phiKernel; 
 }
 
-double d2N(double pT, double qT, double phipq, double yp, double yq, double rts)
+double d2Nglasma0(double pT, double qT, double phipq, double yp, double yq, double rts)
 {
-    static struct double_params params;
+    static struct glasma_params params;
     params.pT = pT;
     params.qT = qT;
     params.yp = yp;
@@ -47,10 +47,10 @@ double d2N(double pT, double qT, double phipq, double yp, double yq, double rts)
     return norm*result;
 }
 
-double d2Ndd(double pT, double yp, double yq, double rts)
+double d2Nglasma1(double pT, double yp, double yq, double rts)
 {
     double sinres, cosres;
-    static struct double_params params;
+    static struct glasma_params params;
     params.pT = pT;
     params.yp = yp;
     params.yq = yq;
@@ -72,7 +72,7 @@ double d2Ndd(double pT, double yp, double yq, double rts)
 
 double doubleKernel(double x, void *p)
 {
-   struct double_params params = *(struct double_params *)p;
+   struct glasma_params params = *(struct glasma_params *)p;
   
    double rts = params.rts;
    double pT, qT, yp, yq;
@@ -152,13 +152,13 @@ double doubleKernel(double x, void *p)
    double H = 0.5*kT*T1H*T2H/denH\
                *wf(1,x1max,kT)*wf(1,x1max,pTmkTpqT)*wf(2,x2max,pTmkT)*wf(2,x2max,qTmkT);
    
-   return AE + BF + D + H;
+   return (AE + BF + D + H);
 }
 
 
 double cosKernel(double x, void *p)
 {
-   struct double_params params = *(struct double_params *)p;
+   struct glasma_params params = *(struct glasma_params *)p;
   
    double rts = params.rts;
    double pT, yp, yq;
@@ -189,7 +189,7 @@ double cosKernel(double x, void *p)
 
 double sinKernel(double x, void *p)
 {
-   struct double_params params = *(struct double_params *)p;
+   struct glasma_params params = *(struct glasma_params *)p;
   
    double rts = params.rts;
    double pT, yp, yq;
@@ -221,7 +221,7 @@ double sinKernel(double x, void *p)
 //does phi integration over d^2k_\perp
 double phiKernel(double x, void *p)
 {
-   struct double_params params = *(struct double_params *)p;
+   struct glasma_params params = *(struct glasma_params *)p;
    double result, error;
    params.phi = x;
    
@@ -232,4 +232,35 @@ double phiKernel(double x, void *p)
    gsl_integration_qagiu (&F , 0., abserr, relerr, wktsize, wkt, &result, &error);
 
 return result;
+}
+
+void TabulateGlasma(FILE *out0, FILE *out1, double rts)
+{
+   int np=16;
+   //returns dN/d^2p_T d^2q_T dy_p dy_q / (S_\perp) [GeV^-2]
+
+   int i;
+   double yp, yq, rtpT, rtqT, phi;
+/*   for (yp = -6.0; yp <= 6.0; yp += 0.25)
+   for (yq = -6.0; yq <= 6.0; yq += 0.25)
+   for (rtpT = .1; rtpT <= 5.1; rtpT += .2){
+   fprintf(out1,"%10.2e\t%10.2e\t%10.2e\t%10.5e\n", yp, yq, rtpT,\
+   d2Nglasma1(pow(rtpT,2.),yp,yq,rts) );
+   }
+   fclose(out1);
+*/
+   for(yp = -1.0; yp <= 6.0; yp += 50.25)
+   for(yq = -1.0; yq <= 6.0; yq += 50.25)
+   for(rtpT = .1; rtpT <= 4.1; rtpT += .2)
+   for(rtqT = .1; rtqT <= 4.1; rtqT += .2)
+   for(i = 0; i < np; i++)
+   {
+      phi = (double)i/(double)(np-1)*3.14159;
+      fprintf(out0,"%10.2f\t%10.2f\t%10.2f\t%10.2f\t%10.4f\t%10.5e\n",\
+            yp, yq, rtpT, rtqT, phi,\
+            d2Nglasma0(pow(rtpT,2.), pow(rtqT,2.), phi, yp, yq, rts) );
+   }
+   fclose(out0);
+
+return;
 }

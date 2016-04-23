@@ -53,7 +53,10 @@ double dNd2pTdy(double pT, double yp, double rts)
    params.pT = pT;
    params.yp = yp;
    params.rts = rts;
-
+   
+   if ( pT/rts*exp(fabs(yp)) >= 1.0 || pT/rts*exp(-fabs(yp)) <= XMIN)
+           return 0.;
+   
    double result, error;
    double xmin[2] = {-pi,   0.};
    double xmax[2] = {+pi, KMAX};
@@ -118,10 +121,11 @@ void TabulateSingle(FILE *out, double rts)
    //as a function of y and sqrt(pT)
 
    double yp, rtpT;
-   for (yp = -3; yp <= 3; yp += 0.25)
+   for (yp = -10.; yp <= 10.; yp += 0.1)
    for (rtpT = .1; rtpT <= 10.1; rtpT += .2){
    fprintf(out,"%10.2e\t%10.2e\t%10.5e\n", yp, rtpT,\
    dNd2pTdy(pow(rtpT,2.),yp,rts) );
+   fflush(out);
    }
    fclose(out);
 }

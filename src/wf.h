@@ -22,6 +22,7 @@
                         // beyond this max kt
 
 #define x0 (0.01)       // separates small/large x
+#define XMIN (x0*exp(-15.)) //smallest x tabulated
 
 // Global variables for UGD for nucleus 1 and 2
 double uGD1[NY][Nkt];

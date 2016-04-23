@@ -55,46 +55,18 @@ setup_double();
 
 //PrintWF(.0003, tag);
 
-OpenFile(outsingle, tag, "_single.dat", "w");
-OpenFile(outdouble, tag, "_double.dat", "w");
-double y, x1, x2;
-double kT = 1.;
 
-for (y = -10; y <= 10; y += 0.05)
-{ 
-    x1 = kT/rts*exp(+y);
-    x2 = kT/rts*exp(-y);
-//    fprintf(outsingle,"%10.2e\t%10.2e\t%10.2e\t%10.5e\t%10.5e\t%10.5e\n", y, x1, x2, dNdy(kT,y,rts,0.), dNdy(kT,y,rts,1.), dNdy(kT,y,rts,5.) );
-}
+
+OpenFile(outsingle, tag, "_single.dat", "w");
+TabulateSingle(outsingle,rts);
+
+
+OpenFile(out0, tag, "_glasma0.dat", "w");
+OpenFile(out1, tag, "_glasma1.dat", "w");
 clock_t begin, end;
 double time_spent;
-
 begin = clock();
-
-//warning -- only using AEBF
-double yp,yq,dy;
-double x1p, x2p, x1q, x2q;
-double pT=1.0;
-double qT=1.0;
-for (yp = -2.2; yp <= 3; yp += 4.4)
-{
-    for (dy = -8; dy <= 8.01; dy += .5)
-    { 
-        yq = dy + yp;
-        x1p = pT/rts*exp(+yp);
-        x2p = pT/rts*exp(-yp);
-        x1q = qT/rts*exp(+yq);
-        x2q = qT/rts*exp(-yq);
-        fprintf(outdouble,"%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.2e\t%10.5e\t%10.5e\t%10.5e\n",\
-            yp, dy, x1p, x2p, x1q, x2q, \
-            d2N(pT,qT,0.,yp,yq,rts)/dNd2pTdy(pT,yp,rts),\
-            d2Ndd(pT,yp,yq,rts)/dNd2pTdy(pT,yp,rts),\
-            dNd2pTdy(qT,yq,rts) );
-        fflush(outdouble);
-    }
-fprintf(outdouble,"\n");
-}
-
+TabulateGlasma(out0,out1,rts);
 end = clock();
 time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 printf("time elapsed (seconds): %10.2e\n", time_spent);
