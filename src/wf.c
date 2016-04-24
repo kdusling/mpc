@@ -2,7 +2,7 @@
 
 double wf(int nucleus, double x, double k)
 {
-   if ( x <= 0.0 || x >= 1.0 || k < kT_min )
+   if ( x <= XMIN || x >= 1.0 || k < kT_min )
       return 0.0;
 
    if (k > kT_max)
@@ -35,7 +35,7 @@ double wf(int nucleus, double x, double k)
 	      tmp2 = gsl_spline_eval(WF2[iY+1], k, accWF2[iY+1]);
       } else {
          tmp=0; tmp1=0; tmp2=0;
-         printf("Error: invalid choice for Nucleus\n");
+         printf("Error: invalid Nucleus\n");
          return 0.;
       }
 	   tmp = tmp1 + (myY-dY*iY)/dY * (tmp2-tmp1);  // lin interpolation in Y

@@ -32,7 +32,9 @@ if (ierr == 1)
 strcat(tag,"output/");
 strcat(tag,inputFileName);
 
+TabulateAlpha();
 gsl_set_error_handler_off ();
+
 //read in UGD from file
 char fname1[256];
 char fname2[256];
@@ -50,15 +52,13 @@ if (wfTAG == 1){
 }
 
 ReadInWF(fname1,fname2,fname3);
-setup_double();
 //ReadInBFKL();  
 
 //PrintWF(.0003, tag);
 
 
-
-OpenFile(outsingle, tag, "_single.dat", "w");
-TabulateSingle(outsingle,rts);
+//OpenFile(outsingle, tag, "_single.dat", "w");
+//TabulateSingle(outsingle,rts);
 
 
 OpenFile(out0, tag, "_glasma0.dat", "w");

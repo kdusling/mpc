@@ -15,7 +15,7 @@ GSL_CFLAGS = $(shell gsl-config --cflags)
 
 CC       = gcc
 # compiling flags here
-CFLAGS   = -std=c99 -Wall -I. $(GSL_CFLAGS)
+CFLAGS   = -std=c99 -O3 -Wall -I. $(GSL_CFLAGS)
 
 LINKER   = gcc -o
 # linking flags here

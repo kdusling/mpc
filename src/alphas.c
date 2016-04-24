@@ -3,9 +3,30 @@
 #include <stdlib.h>
 #include <math.h>
 
+void TabulateAlpha()
+{
+    int pts = 60;
+    double mu[pts];
+    double a[pts];
+
+    mu[0] = 0.0;  a[0] = alpha_s2((mu0-1.0)*LamQCD);
+    int i;
+    for (i=1; i<pts; i++)
+    {
+        mu[i] = exp( log(mu0*LamQCD) + (i-1)*.1 );
+        a[i] = alpha_s2(mu[i]);  
+    }
+
+    accAlpha = gsl_interp_accel_alloc();
+    Alpha = gsl_spline_alloc(gsl_interp_cspline, pts);
+    gsl_spline_init (Alpha, &mu[0], &a[0], pts); 
+
+return ;
+}
+
 double alpha(double mu)
 {
-	return alpha_nf3_fit(mu);
+    return gsl_spline_eval(Alpha, mu, accAlpha);
 }
 
 double alpha_b0(double nf)
@@ -49,40 +70,4 @@ double alpha_s2(double mu)
    return alpha_s1(mu) + alpha_s0(mu)*( pow( alpha_b1(nf(mu))/pow(alpha_b0(nf(mu)),2.)/log(mu/LamQCD) ,2.)*( pow( log(2.*log(mu/LamQCD)) - 0.5, 2.) + alpha_b2(nf(mu))*alpha_b0(nf(mu))/8.0/pow(alpha_b1(nf(mu)),2.) - 5./4.) );
 }
 
-double alpha_nf3_fit(double mu)
-{
-
-if (mu < mu0*LamQCD){
-    //double x = mu0*LamQCD;
-    //double t2 = (a+b/x)/log(e*x) ;
-    //double slope = -t2/x/log(e*x)-b/x/x/log(e*x);
-    double t2 = 0.3703727875;
-    double slope = -0.2644016513;
-    return 2.*t2/(1 + exp(2.*slope/t2*(mu0*LamQCD - mu))) ;
-}
-
-double a = 0.665861;
-double b = 0.0963647;
-double e = 9.38513;
-
-return (a+b/mu)/log(e*mu);
-
-}
-
-void print_alpha(const char *out)
-{
-   char fname[256];
-   sprintf(fname,"%s_alphas.dat",out);
-   printf("Writing alpha_s to file %s\n",fname);
-   FILE *alpha_test = fopen(fname,"w");
-   for (double lmu = -7; lmu < 7; lmu += .1)
-   {
-      fprintf(alpha_test, "%lf\t%lf\t%lf\t%lf\t%lf\n", exp(lmu),\
-      alpha_s0(exp(lmu)),\
-      alpha_s1(exp(lmu)),\
-      alpha_s2(exp(lmu)),\
-      alpha_nf3_fit(exp(lmu)) );
-   }
-   fclose(alpha_test);
-}
 

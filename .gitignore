@@ -4,5 +4,5 @@ bin/*
 !bin/test.input
 !bin/output/
 bin/output/*
-!bin/output/README
+!bin/output/.gitignore
 .DS_Store

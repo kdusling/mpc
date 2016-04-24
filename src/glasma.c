@@ -9,22 +9,13 @@
 
 //workspace and global variables for integration
 static double abserr = 1.e-200;
-static double relerr = 1.e-6;
-static size_t wktsize = 20;
-static gsl_integration_workspace * wkt;
+static double relerr = 1.e-20;
 
 double phiKernel(double x, void *params);
 
 static double result,error;
 static size_t neval;
 static gsl_function phiIntKernel;
-
-void setup_double()
-{
-wkt = gsl_integration_workspace_alloc (wktsize);
-gsl_set_error_handler_off ();
-phiIntKernel.function = &phiKernel; 
-}
 
 double d2Nglasma0(double pT, double qT, double phipq, double yp, double yq, double rts)
 {
@@ -35,11 +26,12 @@ double d2Nglasma0(double pT, double qT, double phipq, double yp, double yq, doub
     params.yq = yq;
     params.rts = rts;
     params.phipq = phipq;
+    phiIntKernel.function = &phiKernel; 
     (params.Kernel).function = &doubleKernel;
 
     phiIntKernel.params = &params;
-    gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &result,
-            &error, &neval);
+    gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr,\
+            &result, &error, &neval);
 
     double norm = (Nc*Nc)/gsl_pow_3(Nc*Nc-1.)/(4.*pow(M_PI,10.))/gsl_pow_2(pT*
         qT)*alpha(pT)*alpha(qT);
@@ -56,6 +48,7 @@ double d2Nglasma1(double pT, double yp, double yq, double rts)
     params.yq = yq;
     params.rts = rts;
 
+    phiIntKernel.function = &phiKernel; 
     (params.Kernel).function = &cosKernel;
     phiIntKernel.params = &params;
     gsl_integration_qng(&phiIntKernel, -M_PI, M_PI, abserr, relerr, &cosres, &error, &neval);
@@ -228,15 +221,15 @@ double phiKernel(double x, void *p)
    gsl_function F = params.Kernel;
    F.params = &params;
 
-   //now do kT integral
-   gsl_integration_qagiu (&F , 0., abserr, relerr, wktsize, wkt, &result, &error);
+   gsl_integration_qng(&F, kT_min, 2.0*kT_max, abserr, relerr,\
+           &result, &error, &neval);
 
 return result;
 }
 
 void TabulateGlasma(FILE *out0, FILE *out1, double rts)
 {
-   int np=16;
+   int np=17;
    //returns dN/d^2p_T d^2q_T dy_p dy_q / (S_\perp) [GeV^-2]
 
    int i;
