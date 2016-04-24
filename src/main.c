@@ -57,8 +57,8 @@ ReadInWF(fname1,fname2,fname3);
 //PrintWF(.0003, tag);
 
 
-//OpenFile(outsingle, tag, "_single.dat", "w");
-//TabulateSingle(outsingle,rts);
+OpenFile(outsingle, tag, "_single.dat", "w");
+TabulateSingle(outsingle,rts);
 
 
 OpenFile(out0, tag, "_glasma0.dat", "w");
