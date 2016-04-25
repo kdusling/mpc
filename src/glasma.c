@@ -234,7 +234,7 @@ void TabulateGlasma(FILE *out, double rts)
    double yp, yq, rtpT;
    for (yp = -6.0; yp <= 6.0; yp += 0.25)
    for (yq = -6.0; yq <= 6.0; yq += 0.25)
-   for (rtpT = .1; rtpT <= 5.1; rtpT += .2){
+   for (rtpT = .1; rtpT <= 5.11; rtpT += .2){
    fprintf(out,"%10.2e\t%10.2e\t%10.2e\t%10.5e\n", yp, yq, rtpT,\
    d2Nglasma1(pow(rtpT,2.),yp,yq,rts) );
    }
