@@ -2,17 +2,18 @@
 
 int main(int argc, char **argv)
 {
-   if (np < 3)
-   {
-    printf("Error: np must be at least 3.\n");
-    return 0;
-   }
 
    // Initialize the MPI environment
    MPI_Init(NULL, NULL);
    // Find out rank, size
    MPI_Comm_rank(MPI_COMM_WORLD, &myid);
    MPI_Comm_size(MPI_COMM_WORLD, &np);
+
+   if (np < 3)
+   {
+    printf("Error: np must be at least 3.\n");
+    return 0;
+   }
 
    //if we are the master
    if (myid == 0) { master_main(argc, argv); }

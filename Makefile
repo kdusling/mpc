@@ -25,7 +25,7 @@ TARGET   = main.exe
 CC       = gcc 
 CFLAGS   = -std=c99 -O3 -Wall -I. $(GSL_CFLAGS)
 LINKER   = gcc -o
-LFLAGS   = -Wall -I. -lm $(GSL_LIBS)
+LFLAGS   = -Wall -I. -lm -I. $(GSL_LIBS)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	@$(LINKER) $@ $(LFLAGS) $(OBJECTS)
