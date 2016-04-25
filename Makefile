@@ -6,31 +6,26 @@
 #
 # ------------------------------------------------
 
-# project name (generate executable with this name)
-TARGET   = main.exe
-
 # get gsl library flags
 GSL_LIBS = $(shell gsl-config --libs)
 GSL_CFLAGS = $(shell gsl-config --cflags)
 
-CC       = gcc
-# compiling flags here
-CFLAGS   = -std=c99 -O3 -Wall -I. $(GSL_CFLAGS)
-
-LINKER   = gcc -o
-# linking flags here
-LFLAGS   = -Wall -I. -lm $(GSL_LIBS)
-
-# change these to set the proper directories where each files shoould be
+# change these to set the proper directories where each files should be
 SRCDIR   = src
 OBJDIR   = obj
 BINDIR   = bin
 
-SOURCES  := $(wildcard $(SRCDIR)/*.c)
+EXCLUDES := $(SRCDIR)/tabulate.c  
+
+SOURCES  := $(filter-out $(EXCLUDES), $(wildcard $(SRCDIR)/*.c))
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-rm       = rm -f
 
+TARGET   = main.exe
+CC       = gcc 
+CFLAGS   = -std=c99 -O3 -Wall -I. $(GSL_CFLAGS)
+LINKER   = gcc -o
+LFLAGS   = -Wall -I. -lm $(GSL_LIBS)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	@$(LINKER) $@ $(LFLAGS) $(OBJECTS)
@@ -42,11 +37,11 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
 
 .PHONEY: clean
 clean:
-	@$(rm) $(OBJECTS)
+	@rm -f $(OBJECTS)
 	@echo "Cleanup complete!"
 
 .PHONEY: remove
 remove: clean
-	@$(rm) $(BINDIR)/$(TARGET)
+	@rm -f $(BINDIR)/$(TARGET)
 	@echo "Executable removed!"
 

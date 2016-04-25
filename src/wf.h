@@ -36,7 +36,7 @@ gsl_spline *WF2[NY];
 gsl_interp_accel *accLargeX;
 gsl_spline *LargeX;
 
-void ReadInWF(const char *wf1, const char *wf2, const char *lx) ;
+void ReadInWF(int A1, int A2, int wfTAG);
 double wf(int nucleus, double x, double kT) ;
 void PrintWF(double x, const char *out) ;
 

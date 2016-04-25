@@ -50,12 +50,27 @@ double wf(int nucleus, double x, double k)
 return 0.;
 }
 
-void ReadInWF(const char *wf1, const char *wf2, const char *lgx)
+void ReadInWF(int A1, int A2, int wfTAG)
 {
+char wf1[256];
+char wf2[256];
+char lgx[256];
+
+if (wfTAG == 0){
+       sprintf(wf1,"../wf/ft_g1119_qs02_0168_af1_399_N%d.dat",A1);
+       sprintf(wf2,"../wf/ft_g1119_qs02_0168_af1_399_N%d.dat",A2);
+       sprintf(lgx,"../wf/LargeX.dat");
+}
+if (wfTAG == 1){
+       sprintf(wf1,"../wf/ft_mv_qs02_02_af1_N%d.dat",A1);
+       sprintf(wf2,"../wf/ft_mv_qs02_02_af1_N%d.dat",A2);
+       sprintf(lgx,"../wf/LargeX.dat");
+}
 
 #ifdef DEBUG 
    printf("Reading in wf 1 from file: %s\n", wf1);
    printf("Reading in wf 2 from file: %s\n", wf2);
+   printf("Reading in large x from file: %s\n", lgx);
 #endif
 
 double temp;

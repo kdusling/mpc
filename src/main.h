@@ -2,14 +2,10 @@
 #define main_H_INCLUDED
 
 #include "wf.h"
-#include "cubature.h"
-#include "jet.h"
-#include "bfkl.h"
 #include "glasma.h"
 #include "time.h"
 #include "single.h"
-//#include <gsl/gsl_errno.h>
-//#include "SpecialFunc.h"
+#include <gsl/gsl_errno.h>
 
 char tag[256];
 

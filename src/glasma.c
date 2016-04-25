@@ -227,33 +227,18 @@ double phiKernel(double x, void *p)
 return result;
 }
 
-void TabulateGlasma(FILE *out0, FILE *out1, double rts)
+void TabulateGlasma(FILE *out, double rts)
 {
-   int np=17;
    //returns dN/d^2p_T d^2q_T dy_p dy_q / (S_\perp) [GeV^-2]
 
-   int i;
-   double yp, yq, rtpT, rtqT, phi;
+   double yp, yq, rtpT;
    for (yp = -6.0; yp <= 6.0; yp += 0.25)
    for (yq = -6.0; yq <= 6.0; yq += 0.25)
-   for (rtpT = .1; rtpT <= 4.1; rtpT += .2){
-   fprintf(out1,"%10.2e\t%10.2e\t%10.2e\t%10.5e\n", yp, yq, rtpT,\
+   for (rtpT = .1; rtpT <= 5.1; rtpT += .2){
+   fprintf(out,"%10.2e\t%10.2e\t%10.2e\t%10.5e\n", yp, yq, rtpT,\
    d2Nglasma1(pow(rtpT,2.),yp,yq,rts) );
    }
-   fclose(out1);
-
-   for(yp = -6.0; yp <= 6.0; yp += 0.25)
-   for(yq = -6.0; yq <= 6.0; yq += 0.25)
-   for(rtpT = .1; rtpT <= 4.1; rtpT += .2)
-   for(rtqT = .1; rtqT <= 4.1; rtqT += .2)
-   for(i = 0; i < np; i++)
-   {
-      phi = (double)i/(double)(np-1)*3.14159;
-      fprintf(out0,"%10.2f\t%10.2f\t%10.2f\t%10.2f\t%10.4f\t%10.5e\n",\
-            yp, yq, rtpT, rtqT, phi,\
-            d2Nglasma0(pow(rtpT,2.), pow(rtqT,2.), phi, yp, yq, rts) );
-   }
-   fclose(out0);
+   fclose(out);
 
 return;
 }

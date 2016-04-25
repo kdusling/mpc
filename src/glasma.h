@@ -27,6 +27,6 @@ double doubleKernel(double x, void *p);
 double cosKernel(double x, void *p);
 double sinKernel(double x, void *p);
 
-void TabulateGlasma(FILE *out0, FILE *out1, double rts);
+void TabulateGlasma(FILE *out, double rts);
 
 #endif
