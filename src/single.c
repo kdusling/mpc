@@ -61,7 +61,7 @@ double dNd2pTdy(double pT, double yp, double rts)
    double xmin[2] = {-pi,   0.};
    double xmax[2] = {+pi, KMAX};
    
-   adapt_integrate(1, single_integrand, &params, 2, xmin, xmax, 0, 0, 1.e-4, &result, &error);
+   adapt_integrate(1, single_integrand, &params, 2, xmin, xmax, 100000, 0, 1.e-4, &result, &error);
 
 return result;
 }
@@ -121,9 +121,9 @@ void TabulateSingle(FILE *out, double rts)
    //as a function of y and sqrt(pT)
 
    double yp, rtpT;
-   for (yp = -10.; yp <= 10.; yp += 0.1)
-   for (rtpT = .1; rtpT <= 10.11; rtpT += .2){
-   fprintf(out,"%10.2e\t%10.2e\t%10.5e\n", yp, rtpT,\
+   for (yp = -10.0; yp <= 10.0; yp += 1.0)
+   for (rtpT = .1; rtpT <= 5.11; rtpT += .1){
+   fprintf(out,"%10.2f\t%10.2f\t%10.5e\n", yp, rtpT,\
    dNd2pTdy(pow(rtpT,2.),yp,rts) );
    fflush(out);
    }

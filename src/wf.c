@@ -2,6 +2,15 @@
 
 double wf(int nucleus, double x, double k)
 {
+    #ifdef fixedx
+    x = fixedx;
+    #endif
+
+   if (wfTAG == 2)
+   {
+      return wfsimple(nucleus, x, k);
+   }
+
    if ( x <= XMIN || x >= 1.0 || k < kT_min )
       return 0.0;
 
@@ -50,8 +59,9 @@ double wf(int nucleus, double x, double k)
 return 0.;
 }
 
-void ReadInWF(int A1, int A2, int wfTAG)
+void ReadInWF(int A1, int A2, int TAG)
 {
+wfTAG = TAG;
 char wf1[256];
 char wf2[256];
 char lgx[256];
@@ -65,6 +75,11 @@ if (wfTAG == 1){
        sprintf(wf1,"../wf/ft_mv_qs02_02_af1_N%d.dat",A1);
        sprintf(wf2,"../wf/ft_mv_qs02_02_af1_N%d.dat",A2);
        sprintf(lgx,"../wf/LargeX.dat");
+}
+if (wfTAG == 2){
+    QS21 = (double)(A1)*QS02;
+    QS22 = (double)(A2)*QS02;
+    return;
 }
 
 #ifdef DEBUG 
@@ -123,6 +138,17 @@ fclose(table3);
 return;
 }
 
+double wfsimple(int nucleus, double x, double k)
+{
+    double Q2;
+    if (nucleus == 1)
+        Q2 = QS21;
+    if (nucleus == 2)
+        Q2 = QS22;
+
+   return 8.*pi*Q2/(k*k)*( 1.0 - exp(-k*k*k*k/Q2/Q2/4.) );
+}
+
 void PrintWF(double x, const char *out)
 {
    char fname[256];
@@ -134,5 +160,4 @@ void PrintWF(double x, const char *out)
       fprintf(wfout,"%10.3e\t%10.5e\t%10.5e\t%10.5e\n",k, alpha(k), wf(1,x,k), wf(2,x,k) );
 
    fclose(wfout);
-
 }

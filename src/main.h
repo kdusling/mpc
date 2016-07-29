@@ -3,6 +3,7 @@
 
 #include "wf.h"
 #include "glasma.h"
+#include "jet.h"
 #include "time.h"
 #include "single.h"
 #include <gsl/gsl_errno.h>

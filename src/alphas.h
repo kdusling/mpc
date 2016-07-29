@@ -1,6 +1,9 @@
 #ifndef alphas_H_INCLUDED
 #define alphas_H_INCLUDED
 
+//for fixed alpha
+#define g2 (4.6)
+
 #include <gsl/gsl_spline.h>
 
 //http://pdg.lbl.gov/2010/reviews/rpp2010-rev-qcd.pdf

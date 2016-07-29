@@ -53,7 +53,7 @@ char inputFileName[80];
    strcat(tag,inputFileName); 
 
    char filename[256];
-   strcpy(filename,"_glasma1.dat");
+   strcpy(filename,"_glasma0.dat");
    OpenFile(output, tag, filename, "w");
 
    int i;
@@ -67,8 +67,12 @@ char inputFileName[80];
    double slres;
    double yp, yq, rtpT, rtqT;
    double vals[5]; 
-   for(yp = -6.0; yp <= 6.0; yp += 0.25)
-   for(yq = -6.0; yq <= 6.0; yq += 0.25)
+   //double yrange = 6.0;
+   double dy = 0.25;
+   double yrange = dy;
+   
+   for(yp = -yrange; yp <= yrange; yp += dy)
+   for(yq = -yrange; yq <= yrange; yq += dy)
    for(rtpT = .1; rtpT <= 5.11; rtpT += .2)
    for(rtqT = .1; rtqT <= 5.11; rtqT += .2)
    {   
@@ -94,7 +98,6 @@ char inputFileName[80];
    for(i=1; i <= np-1; i++) {
       MPI_Send(vals, 5, MPI_DOUBLE, i, END_MSG, MPI_COMM_WORLD);
    }
-
 
 return 0;
 }

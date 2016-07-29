@@ -24,11 +24,11 @@ OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 TARGET   = tabulate.exe
 CC       = mpicc 
 CFLAGS   = -openmp -std=c99 -O3 -Wall -I. $(GSL_CFLAGS)
-LINKER   = mpicc -o
+LINKER   = mpicc 
 LFLAGS   = -openmp -Wall -lm -I. $(GSL_LIBS)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
-	@$(LINKER) $@ $(LFLAGS) $(OBJECTS)
+	@$(LINKER) $(LFLAGS) $(OBJECTS) -o $@
 	@echo "Linking complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c

@@ -26,6 +26,10 @@ return ;
 
 double alpha(double mu)
 {
+    #ifdef g2
+        return g2/(4.*pi);
+    #endif 
+
     return gsl_spline_eval(Alpha, mu, accAlpha);
 }
 

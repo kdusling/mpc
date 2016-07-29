@@ -230,12 +230,18 @@ return result;
 void TabulateGlasma(FILE *out, double rts)
 {
    //returns dN/d^2p_T d^2q_T dy_p dy_q / (S_\perp) [GeV^-2]
+   //this is the delta function contribution
+   //of the glasma graphs
 
    double yp, yq, rtpT;
-   for (yp = -6.0; yp <= 6.0; yp += 0.25)
-   for (yq = -6.0; yq <= 6.0; yq += 0.25)
+   //double yrange = 6.0;
+   double dy = 0.25;
+   double yrange = dy;
+   
+   for (yp = -yrange; yp <= yrange; yp += dy)
+   for (yq = -yrange; yq <= yrange; yq += dy)
    for (rtpT = .1; rtpT <= 5.11; rtpT += .2){
-   fprintf(out,"%10.2e\t%10.2e\t%10.2e\t%10.5e\n", yp, yq, rtpT,\
+   fprintf(out,"%10.2f\t%10.2f\t%10.2f\t%10.5e\n", yp, yq, rtpT,\
    d2Nglasma1(pow(rtpT,2.),yp,yq,rts) );
    }
    fclose(out);

@@ -14,6 +14,10 @@
 //*
 // Global variables for UGD for nucleus 1 and 2
 //*
+
+//run at fixed x
+//#define fixedx (0.001)
+
 //number of tabulated points in Y and kT for wavefunction
 #define NY 151
 #define Nkt 101
@@ -25,6 +29,7 @@
 #define XMIN (x0*exp(-15.)) //smallest x tabulated
 
 // Global variables for UGD for nucleus 1 and 2
+int wfTAG;
 double uGD1[NY][Nkt];
 double uGD2[NY][Nkt];
 double Y[NY];
@@ -35,9 +40,13 @@ gsl_interp_accel *accWF2[NY];
 gsl_spline *WF2[NY];
 gsl_interp_accel *accLargeX;
 gsl_spline *LargeX;
+//global variable for wfTAG=2
+#define QS02 (0.1)
+double QS21, QS22;
 
-void ReadInWF(int A1, int A2, int wfTAG);
+void ReadInWF(int A1, int A2, int TAG);
 double wf(int nucleus, double x, double kT) ;
+double wfsimple(int nucleus, double x, double kT) ;
 void PrintWF(double x, const char *out) ;
 
 #endif
