@@ -5,7 +5,7 @@
 
 void TabulateAlpha()
 {
-    int pts = 60;
+    int pts = 100;
     double mu[pts];
     double a[pts];
 
@@ -15,8 +15,8 @@ void TabulateAlpha()
     {
         mu[i] = exp( log(mu0*LamQCD) + (i-1)*.1 );
         a[i] = alpha_s2(mu[i]);  
+        //printf("%10.5e\t%10.5e\n",mu[i],a[i]);
     }
-
     accAlpha = gsl_interp_accel_alloc();
     Alpha = gsl_spline_alloc(gsl_interp_cspline, pts);
     gsl_spline_init (Alpha, &mu[0], &a[0], pts); 

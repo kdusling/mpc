@@ -31,28 +31,21 @@ ReadInWF(A1, A2, wfTAG);
 
 strcat(tag,"output/");
 strcat(tag,inputFileName);
-OpenFile(outsingle, tag, "_single.dat", "w");
-//TabulateSingle(outsingle,rts);
+TabulateSingle(tag,rts);
 
-//double rT;
-//for (rT=.28125; rT<18. ; rT+=0.0625)
-//{
- //   printf("%10.5f\t%10.5e\n",rT,dNd2pTdy(rT,0.,rts));
-//}
- 
+ReadInBFKL();
 OpenFile(outglasma, tag, "_double.dat", "w");
 double pT, qT, phi;
-for (pT=.28125; pT<18. ; pT+=0.0625)
-for (qT=.28125; qT<18. ; qT+=0.0625)
+for (pT=0.96875; pT<18. ; pT+=0.25)
+for (qT=0.96875; qT<18. ; qT+=0.25)
 for (phi=0; phi<3.1416 ; phi+=.1963)
 {
-fprintf(outglasma,"%10.5f\t%10.5f\t%10.3e\t%10.5e\t%10.5e\t%10.5e\t%10.5e\t%10.5e\t%10.5e\n",pT,qT,phi,\
-        d2Nglasma0(pT, qT, phi, 0., 0.,rts),\
-        d2Nglasma1(pT,0.,0.,rts),\
-        d2N_MRK(pT, qT, phi, 0., 0., rts),\
-        d2N_simple_jet(pT, qT, phi, 0., 0., rts),\
-        dNd2pTdy(pT,0.,rts),\
+fprintf(outglasma,"%10.5f\t%10.5f\t%10.3e\t%10.5e\t%10.5e\t%10.5e\t%10.5e\n",pT,qT,phi,\
+        d2N_MRK(pT, qT, phi, -1.5, +1.5, rts),\
+        d2N_BFKL(pT, qT, phi, -1.5, +1.5, rts),\
+        dNd2pTdy(pT,0.,rts) ,\
         dNd2pTdy(qT,0.,rts) );
+fflush(outglasma);
 }
 
 return 0;

@@ -9,6 +9,7 @@
 #include "wf.h"
 #include "glasma.h"
 #include "jet.h"
+#include "bfkl.h"
 #include <gsl/gsl_errno.h>
 
 #define END_MSG 0

@@ -73,8 +73,6 @@ return 0.;
 }
 
 
-
-
 void bfklint(unsigned ndim, const double *x, void *params, unsigned fdim, double *fval) {
    myparams = *(struct bfkl_params *)params;
    double phi0 = x[0];
@@ -114,17 +112,17 @@ double d2N_BFKL(double pT, double qT, double phi, double yp, double yq, double r
    params.pT = pT;
    params.qT = qT;
    params.phi = phi;
-	params.dy = yp-yq;
-	params.x1 = (pT*exp(-yp)+qT*exp(-yq))/rts;
-	params.x2 = (pT*exp(+yp)+qT*exp(+yq))/rts;
-		
-   double xmin1[4] = {0.     , 0.,           kT_min, 1.0/XMAX};
+   params.dy = yp-yq;
+   params.x1 = (pT*exp(-yp)+qT*exp(-yq))/rts;
+   params.x2 = (pT*exp(+yp)+qT*exp(+yq))/rts;
+   
+   double xmin1[4] = {0., 0., kT_min, 1.0/XMAX};
    double xmax1[4] = {2.*M_PI, 2.*M_PI, 3.0*kT_max, 1.00};
-	adapt_integrate(1, bfklint, &params, 4, xmin1, xmax1, 10000000, 0, 1e-4, &result1, &error1);
+   adapt_integrate(1, bfklint, &params, 4, xmin1, xmax1, 10000000, 0, 1e-4, &result1, &error1);
 
-   double xmin2[4] = {0.     , 0.     ,      kT_min, 1.00};
+   double xmin2[4] = {0., 0., kT_min, 1.00};
    double xmax2[4] = {2.*M_PI, 2.*M_PI, 3.0*kT_max, XMAX};
-	adapt_integrate(1, bfklint, &params, 4, xmin2, xmax2, 10000000, 0, 1e-4, &result2, &error2);
+   adapt_integrate(1, bfklint, &params, 4, xmin2, xmax2, 10000000, 0, 1e-4, &result2, &error2);
    
    //two times MRK factor 
    double fac = Nc*Nc/2./pow(pi,8.)/(Nc*Nc-1.0)*alpha(pT)*alpha(qT)/(pT*pT*qT*qT);

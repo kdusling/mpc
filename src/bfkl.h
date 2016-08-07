@@ -18,7 +18,7 @@
 #define Nhar 24 
 #define ZMIN (0.15)
 #define ZMAX (4.8)
-#define XMAX (144.00)
+#define XMAX (100.00)
 
 void ReadInBFKL();
 double BFKLfunc(double z, double x, int n);
@@ -29,7 +29,7 @@ struct bfkl_params {
 	double qT;
 	double phi;
 	double x1, x2;
-   double dy;
+    double dy;
 	} ;
 
 #endif

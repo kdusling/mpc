@@ -115,19 +115,40 @@ double ng(double pTmin, double pTmax, double ymin, double ymax, double rts)
 return result;
 }
 
-void TabulateSingle(FILE *out, double rts)
+void TabulateSingle(char *tag, double rts)
 {
    //returns dN/d^2p_T dy_p / (S_\perp) [GeV^0]
    //as a function of y and sqrt(pT)
 
+   char fn_filename[256]; 
+
+   strcpy(fn_filename, tag); 
+   strcat(fn_filename, "_single.txt"); 
+   FILE * s1 = fopen( fn_filename, "w"); 
+   if (s1 == NULL) {printf("Error: file \"%s\" could not be opened.\n\n",fn_filename); exit(1);}
+
    double yp, rtpT;
    for (yp = -10.0; yp <= 10.0; yp += 1.0)
    for (rtpT = .1; rtpT <= 5.11; rtpT += .1){
-   fprintf(out,"%10.2f\t%10.2f\t%10.5e\n", yp, rtpT,\
+   fprintf(s1,"%10.2f\t%10.2f\t%10.5e\n", yp, rtpT,\
    dNd2pTdy(pow(rtpT,2.),yp,rts) );
-   fflush(out);
+   fflush(s1);
    }
-   fclose(out);
+   fclose(s1);
+   
+   strcpy(fn_filename, tag); 
+   strcat(fn_filename, "_single_midrapidity.txt"); 
+   FILE * s2 = fopen( fn_filename, "w"); 
+   if (s2 == NULL) {printf("Error: file \"%s\" could not be opened.\n\n",fn_filename); exit(1);}
+
+   double rT;
+   for (rT=.28125; rT<18. ; rT+=0.0625)
+   {
+        fprintf(s2,"%10.5f\t%10.5e\n",rT,dNd2pTdy(rT,0.,rts));
+   }
+   fclose(s2);
+   
+   return;
 }
 
 

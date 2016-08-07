@@ -31,6 +31,6 @@ double ng(double pTmin, double pTmax, double ymin, double ymax, double rts);
 
 void TabulateNtot(FILE *out, double rts);
 
-void TabulateSingle(FILE *out, double rts);
+void TabulateSingle(char *tag, double rts);
 
 #endif

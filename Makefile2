@@ -15,16 +15,16 @@ SRCDIR   = src
 OBJDIR   = obj
 BINDIR   = bin
 
-EXCLUDES := $(SRCDIR)/main.c  
+EXCLUDES := $(SRCDIR)/tabulate.c  
 
 SOURCES  := $(filter-out $(EXCLUDES), $(wildcard $(SRCDIR)/*.c))
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
 OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
-TARGET   = tabulate.exe
-CC       = mpicc 
+TARGET   = main.exe
+CC       = gcc 
 CFLAGS   = -std=c99 -O3 -Wall -I. $(GSL_CFLAGS)
-LINKER   = mpicc 
+LINKER   = gcc 
 LFLAGS   = -Wall -I. -lm -I. $(GSL_LIBS)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)

@@ -53,7 +53,7 @@ char inputFileName[80];
    strcat(tag,inputFileName); 
 
    char filename[256];
-   strcpy(filename,"_glasma0.dat");
+   strcpy(filename,"_bfkl.dat");
    OpenFile(output, tag, filename, "w");
 
    int i;
@@ -65,20 +65,16 @@ char inputFileName[80];
    }
 
    double slres;
-   double yp, yq, rtpT, rtqT;
+   double yp, yq, pT, qT;
    double vals[5]; 
-   //double yrange = 6.0;
-   double dy = 0.25;
-   double yrange = dy;
+   yp = -1.5; yq = +1.5;
    
-   for(yp = -yrange; yp <= yrange; yp += dy)
-   for(yq = -yrange; yq <= yrange; yq += dy)
-   for(rtpT = .1; rtpT <= 5.11; rtpT += .2)
-   for(rtqT = .1; rtqT <= 5.11; rtqT += .2)
+   for (pT=0.96875; pT<18. ; pT+=0.25)
+   for (qT=0.96875; qT<18. ; qT+=0.25)
    {   
       //this loop sends out phi values to all the processors
       for(i=1; i <= np-1; i++) {
-         vals[0] = pow(rtpT,2.); vals[1] = pow(rtqT,2.);
+         vals[0] = pT; vals[1] = qT;
          vals[2] = phi[i-1];
          vals[3] = yp; vals[4] = yq;
 
@@ -88,7 +84,7 @@ char inputFileName[80];
       for(i=1; i <= np-1; i++) {
     	  MPI_Recv(&slres, 1, MPI_DOUBLE, i, RET_MSG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
          fprintf(output,"%10.2f\t%10.2f\t%10.2f\t%10.2f\t%10.4f\t%10.5e\n",\
-         yp, yq, rtpT, rtqT, phi[i-1], slres);
+         yp, yq, pT, qT, phi[i-1], slres);
       }
       //finished computation of all phi values
    fflush(output);
@@ -118,6 +114,7 @@ gsl_set_error_handler_off ();
 TabulateAlpha();
 
 ReadInWF(A1, A2, wfTAG);
+ReadInBFKL();
 
 double myres;
 double vals[5]; 
@@ -127,7 +124,7 @@ double vals[5];
       MPI_Recv(vals, 5, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &Status);
       if (Status.MPI_TAG == END_MSG)  break;
       
-      myres = d2Nglasma0( vals[0], vals[1], vals[2], vals[3], vals[4], rts );
+      myres = d2N_BFKL( vals[0], vals[1], vals[2], vals[3], vals[4], rts );
 
       MPI_Send(&myres, 1, MPI_DOUBLE, 0, RET_MSG, MPI_COMM_WORLD);
    }
