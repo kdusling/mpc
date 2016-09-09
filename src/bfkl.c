@@ -15,7 +15,9 @@ void ReadInBFKL()
 //reads in BFKL table from file
 int iN, iZ, iX;
 FILE *BFKLtable = fopen("BFKLKernel.table","r");
-printf("Reading in bfkl table from file: %s\n","BFKLKernel.table");
+#ifdef DEBUG 
+    printf("Reading in bfkl table from file: %s\n","BFKLKernel.table");
+#endif
 
 for (iZ=0; iZ < Nz; iZ++) {
       for (iX=0; iX < Nx; iX++) {
@@ -127,7 +129,7 @@ double d2N_BFKL(double pT, double qT, double phi, double yp, double yq, double r
    //two times MRK factor 
    double fac = Nc*Nc/2./pow(pi,8.)/(Nc*Nc-1.0)*alpha(pT)*alpha(qT)/(pT*pT*qT*qT);
 
-return fac*(result2 - result1);
+   return fac*(result2 - result1);
 }
 
 

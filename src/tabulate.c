@@ -69,8 +69,8 @@ char inputFileName[80];
    double vals[5]; 
    yp = -1.5; yq = +1.5;
    
-   for (pT=0.96875; pT<18. ; pT+=0.25)
-   for (qT=0.96875; qT<18. ; qT+=0.25)
+   for (pT=0.28125; pT<18. ; pT+=0.25)
+   for (qT=0.28125; qT<18. ; qT+=0.25)
    {   
       //this loop sends out phi values to all the processors
       for(i=1; i <= np-1; i++) {
@@ -83,7 +83,7 @@ char inputFileName[80];
       
       for(i=1; i <= np-1; i++) {
     	  MPI_Recv(&slres, 1, MPI_DOUBLE, i, RET_MSG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-         fprintf(output,"%10.2f\t%10.2f\t%10.2f\t%10.2f\t%10.4f\t%10.5e\n",\
+         fprintf(output,"%lf\t%lf\t%lf\t%lf\t%lf\t%10.5e\n",\
          yp, yq, pT, qT, phi[i-1], slres);
       }
       //finished computation of all phi values

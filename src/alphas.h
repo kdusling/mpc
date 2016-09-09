@@ -2,7 +2,7 @@
 #define alphas_H_INCLUDED
 
 //for fixed alpha
-#define g2 (4.6)
+//#define g2 (4.6)
 
 #include <gsl/gsl_spline.h>
 
